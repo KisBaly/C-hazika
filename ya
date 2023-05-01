@@ -1,0 +1,122 @@
+    class Program
+    {
+        static List<Harcos> versenyzok = new List<Harcos>();
+        static List<Harcos> tovabbjutok = new List<Harcos>();
+        static List<string> ranglista = new List<string>();
+        static void Main(string[] args)
+        {
+            /* Generálja ki 16 versenyzőnek az értékeit egy txt fájlba!
+            * Olvasd be a txt adatait egy Harcos típusú listába!
+            * Csináljon egy ranglistát, kieséses győzelemmel!
+            * Írassa ki a körök eredményét! 
+            * Minden kör után a tovább jutó versenyzők kapják vissza az eredeti életerejüket! */
+            
+            FajlbaIras();
+            FajlbolOlvavsas();
+            Harcolnak();
+            ListaKiir();
+            Console.ReadLine();
+        }
+
+        static void FajlbaIras()
+        {
+            Random rnd = new Random();
+            using (StreamWriter writer = new StreamWriter("versenyzok.txt"))
+            {
+                for (int i = 1; i < 16; i++)
+                {
+                    string nev = "Versenyzo " + i;
+                    int eletero = rnd.Next(50, 250);
+                    int harciero = rnd.Next(5, 10);
+                    writer.WriteLine(nev + ";" + eletero + ";" + harciero);
+                }
+            }
+        }
+        static void FajlbolOlvavsas()
+        {
+            StreamReader r = new StreamReader("versenyzok.txt");
+               while (!r.EndOfStream)
+           {
+               string sor = r.ReadLine();
+               string[] adatok = sor.Split(';');
+               string nev = adatok[0];
+               int eletero = Convert.ToInt32(adatok[1]);
+               int harciero = Convert.ToInt32(adatok[2]);
+               Harcos h = new Harcos(nev, eletero, harciero);
+               versenyzok.Add(h);
+               
+            }r.Close();
+
+        }
+        static void Harcolnak()
+        {
+            int index = 0;
+            while (ranglista.Count < 16)
+            {
+                for (int i = 0; i < versenyzok.Count; i += 2)
+                {
+                    Harcos h1 = versenyzok[i];
+                    Harcos h2 = versenyzok[i + 1];
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Thread.Sleep(1000);
+                    Console.WriteLine("Kör " + (i / 2 + 1) + " - " + h1.Nev + " vs. " + h2.Nev);
+
+                    while (!h1.Harcol(h2))
+                    {
+                        Console.ForegroundColor = ConsoleColor.Blue;
+                        Console.WriteLine(h1.ToString());
+                        Thread.Sleep(100);
+                        Console.ForegroundColor = ConsoleColor.DarkYellow;
+                        Console.WriteLine(h2.ToString());
+                    }
+
+                    Console.WriteLine(h1.ToString());
+                    Console.WriteLine(h2.ToString());
+
+                    if (h1.Eletero > 0 || h1.Eletero > h2.Eletero)
+                    {
+                        Thread.Sleep(1000);
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        Console.WriteLine(h1.Nev + " győzött.");
+                        tovabbjutok.Add(h1);
+                        index = i;
+                        ranglista.Add(h2.Nev);
+                    }
+                    else if (h2.Eletero > 0 || h1.Eletero < h2.Eletero)
+                    {
+                        Thread.Sleep(1000);
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        Console.WriteLine(h2.Nev + " győzött.");
+                        tovabbjutok.Add(h2);
+                        index = i+1;
+                        ranglista.Add(h1.Nev);
+                    }
+                    else
+                    {
+                        Thread.Sleep(1000);
+                        Console.ForegroundColor = ConsoleColor.Blue;
+                        Console.WriteLine("Döntetlen.");
+                    }
+                }
+
+                Console.WriteLine("Következő körre továbbjutók:");
+                foreach (Harcos h in tovabbjutok)
+                {
+                    h.Eletero = versenyzok[index].Eletero;
+                    Console.WriteLine(versenyzok[index].Nev + " Nyert");
+                }
+                versenyzok = tovabbjutok;
+            }
+            Thread.Sleep(3000);
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.WriteLine("A győztes: " + versenyzok[0].Nev);
+        }
+        static void ListaKiir()
+        {
+            for (int i = ranglista.Count; i > 0; i++)
+            {
+                Console.WriteLine(ranglista[i]);
+            }
+        }
+        
+    }
